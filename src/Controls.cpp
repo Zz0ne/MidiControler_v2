@@ -4,7 +4,7 @@ byte switch_select() {
     for (byte i = 0; i < NUM_FOOTSWITCH; i++) {
         if (!digitalRead(FOOTSWITCH[i])) {
             // prevents the footswitch state from changing if the user is holding the switch
-            while (!digitalRead(FOOTSWITCH[i])); 
+            while (!digitalRead(FOOTSWITCH[i]));
             // Debouncing delay
             delay(50);
             return i;
@@ -13,38 +13,37 @@ byte switch_select() {
     return NO_SWITCH_PRESSED;
 }
 
-char encoder_movement() {
+char menu_navigation() {
     /*
-        'r' -> right
-        'l' -> left
+        'u' -> up
+        'd' -> down
         'i' -> idle
-        'b' -> button press
-        'c' -> long press
+        's' -> select
+        'l' -> long select
     */
 
-    bool aState = digitalRead(ENCODER_A);
-    if (!aState) {
-        if (aState != digitalRead(ENCODER_B)) {
-            //Serial.println('r');
-            delay(50);
-            return 'r';
-        }
-        else {
-            //Serial.println('l');
-            delay(50);
-            return 'l';
-        }
+    if (!digitalRead(SELECT_UP)) {
+        while (!digitalRead(SELECT_UP));
+        delay(50);
+        return 'u';
     }
-    if (!digitalRead(ENCODER_C)) {
+
+    if (!digitalRead(SELECT_DOWN)) {
+        while (!digitalRead(SELECT_DOWN));
+        delay(50);
+        return 'd';
+    }
+
+    if (!digitalRead(SELECT_CONFIRM)) {
         int timePressed = 0, time = millis();
 
-        while (!digitalRead(ENCODER_C)) {
+        while (!digitalRead(SELECT_CONFIRM)) {
             timePressed = millis();
         }
         timePressed -= time;
         if (timePressed > 600)
-            return 'c';
-        return 'b';
+            return 'l';
+        return 's';
     }
     return 'i';
 }
@@ -53,7 +52,7 @@ bool switch_press(struct Bank* bank) {
     bool switches_pressed[NUM_FOOTSWITCH] = { false };
     bool confirm_press = false;
     byte still_pressed = 0;
-    
+
     for (byte i = 0; i < NUM_FOOTSWITCH; i++) {
         switches_pressed[i] = !digitalRead(FOOTSWITCH[i]);
     }
@@ -69,6 +68,6 @@ bool switch_press(struct Bank* bank) {
     while (!digitalRead(FOOTSWITCH[still_pressed]));
     // Debouncing delay
     delay(50);
-    
+
     return confirm_press;
 }

@@ -15,9 +15,9 @@ void setup() {
   Serial1.begin(9600);
   while (!Serial1);
   /********Set input and output pins********/
-  pinMode(ENCODER_A, INPUT);
-  pinMode(ENCODER_B, INPUT);
-  pinMode(ENCODER_C, INPUT_PULLUP);
+  pinMode(SELECT_UP, INPUT_PULLUP);
+  pinMode(SELECT_DOWN, INPUT_PULLUP);
+  pinMode(SELECT_CONFIRM, INPUT_PULLUP);
   for (byte i = 0; i < NUM_FOOTSWITCH; i++)
     pinMode(FOOTSWITCH[i], INPUT_PULLUP);
   /*****************************************/
@@ -41,18 +41,18 @@ void loop() {
     send_midi_cc(&bank[selectedBank]);
     print_main_menu(&bank[selectedBank]);
   }
-  
-  switch (encoder_movement())
+
+  switch (menu_navigation())
   {
-  case 'r':
+  case 'u':
     selectedBank < NUM_BANKS - 1 ? selectedBank++ : selectedBank = 0;
     print_main_menu(&bank[selectedBank]);
     break;
-  case 'l':
+  case 'd':
     selectedBank > 0 ? selectedBank-- : selectedBank = NUM_BANKS - 1;
     print_main_menu(&bank[selectedBank]);
     break;
-  case 'b':
+  case 's':
     options_menu(&bank[selectedBank]);
     break;
   }
@@ -63,24 +63,26 @@ void options_menu(struct Bank* cur_bank) {
   print_options_menu(cur_bank, selector);
 
   while (1) {
-    switch (encoder_movement())
+    switch (menu_navigation())
     {
-    case 'r':
+    case 'u':
       selector < 3 ? selector++ : selector = 0;
       print_options_menu(cur_bank, selector);
       break;
-    case 'l':
+    case 'd':
       selector > 0 ? selector-- : selector = 3;
       print_options_menu(cur_bank, selector);
       break;
-    case 'b':
-      
+    case 's':
+
       switch (selector) {
       case 0:
         set_midi_values(cur_bank);
+        print_options_menu(cur_bank, selector);
         break;
       case 1:
         rename_bank_menu(cur_bank);
+        print_options_menu(cur_bank, selector);
         break;
       case 2:
         save();
@@ -97,15 +99,15 @@ void options_menu(struct Bank* cur_bank) {
 void set_midi_values(struct Bank* cur_bank) {
   byte switch_selected = 0, selector = 0, function_output;
   print_set_midi_values(cur_bank, switch_selected, selector);
-  
+
   while (1) {
     if ((function_output = switch_select()) != NO_SWITCH_PRESSED) {
       switch_selected = function_output;
       print_set_midi_values(cur_bank, switch_selected, selector);
     }
-    switch (encoder_movement())
+    switch (menu_navigation())
     {
-    case 'r':
+    case 'u':
       if (selector == 0) {
         cur_bank->CCmessage[switch_selected] < 128 ?
           cur_bank->CCmessage[switch_selected]++ : cur_bank->CCmessage[switch_selected] = 1;
@@ -122,7 +124,7 @@ void set_midi_values(struct Bank* cur_bank) {
         print_set_midi_values(cur_bank, switch_selected, selector);
       }
       break;
-    case 'l':
+    case 'd':
       if (selector == 0) {
         cur_bank->CCmessage[switch_selected] >= 1 ?
           cur_bank->CCmessage[switch_selected]-- : cur_bank->CCmessage[switch_selected] = 127;
@@ -139,12 +141,11 @@ void set_midi_values(struct Bank* cur_bank) {
         print_set_midi_values(cur_bank, switch_selected, selector);
       }
       break;
-    case 'b':
+    case 's':
       selector == 2 ? selector = 0 : selector++;
       print_set_midi_values(cur_bank, switch_selected, selector);
       break;
-    case 'c':
-      print_options_menu(cur_bank, 0);
+    case 'l':
       return;
     }
   }
@@ -158,23 +159,22 @@ void rename_bank_menu(struct Bank* cur_bank) {
   print_rename_bank_menu(new_name, selected_char);
 
   while (1) {
-    switch (encoder_movement())
+    switch (menu_navigation())
     {
-    case 'r':
+    case 'u':
       new_name[selected_char] < 126 ? new_name[selected_char]++ : new_name[selected_char] = 32;
       print_rename_bank_menu(new_name, selected_char);
       break;
-    case 'l':
+    case 'd':
       new_name[selected_char] > 31 ? new_name[selected_char]-- : new_name[selected_char] = 126;
       print_rename_bank_menu(new_name, selected_char);
       break;
-    case 'b':
+    case 's':
       selected_char < MAX_BANK_NAME - 2 ? selected_char++ : selected_char = 0;
       print_rename_bank_menu(new_name, selected_char);
       break;
-    case 'c':
+    case 'l':
       strcpy(cur_bank->Name, new_name);
-      print_options_menu(cur_bank, 0);
       return;
     default:
       continue;
@@ -188,17 +188,17 @@ void save() {
   while (1) {
     print_save_menu(selector);
 
-    switch (encoder_movement())
+    switch (menu_navigation())
     {
-    case 'r':
+    case 'u':
       selector < 1 ? selector++ : selector = 0;
       print_save_menu(selector);
       break;
-    case 'l':
+    case 'd':
       selector > 0 ? selector-- : selector = 1;
       print_save_menu(selector);
       break;
-    case 'b':
+    case 's':
       if (selector)
         EEPROM.put(0, bank);
       return;

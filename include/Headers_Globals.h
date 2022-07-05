@@ -8,9 +8,9 @@
 #include "Menu_Print.h"
 #include "Midi_Features.h"
 
-#define ENCODER_A         14
-#define ENCODER_B         15
-#define ENCODER_C         A0
+#define SELECT_UP         14
+#define SELECT_DOWN       15
+#define SELECT_CONFIRM    A0
 #define NO_SWITCH_PRESSED 9
 #define NUM_BANKS         5
 #define NUM_FOOTSWITCH    8

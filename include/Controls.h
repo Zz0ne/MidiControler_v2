@@ -3,5 +3,5 @@
 
 byte switch_select();
 bool switch_press(struct Bank* bank);
-char encoder_movement();
+char menu_navigation();
 #endif
